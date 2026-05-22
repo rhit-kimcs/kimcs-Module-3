@@ -82,14 +82,15 @@ conn.commit()
 print("1. Number of checkouts per member (most active first):")
 # TODO: write a query that JOINs members to checkouts, groups by member,
 #       and COUNTs how many checkouts each has.
-# query1 = """
-#     SELECT members.name, COUNT(checkouts.id) AS checkout_count
-#     FROM ...
-#     GROUP BY ...
-#     ORDER BY checkout_count DESC
-# """
-# for row in conn.execute(query1):
-#     print(f"   {row['name']}: {row['checkout_count']} checkouts")
+query1 = """
+    SELECT m.name, COUNT(checkouts.id) AS checkout_count
+    FROM members m
+    LEFT JOIN checkouts ON m.id = checkouts.member_id
+    GROUP BY m.id
+    ORDER BY checkout_count DESC
+"""
+for row in conn.execute(query1):
+    print(f"   {row['name']}: {row['checkout_count']} checkouts")
 print()
 
 # ── Query 2: Most popular genre ───────────────────────────────────────────────
@@ -97,9 +98,14 @@ print()
 # was checked out.
 print("2. Most popular genres by checkout count:")
 # TODO: write the query
-# query2 = "SELECT ..."
-# for row in conn.execute(query2):
-#     print(f"   {row['genre']}: {row['count']} checkouts")
+query2 = """
+    SELECT b.genre, COUNT(checkouts.id) AS count
+    FROM books b
+    LEFT JOIN checkouts ON b.id = checkouts.book_id
+    GROUP BY b.genre
+"""
+for row in conn.execute(query2):
+    print(f"   {row['genre']}: {row['count']} checkouts")
 print()
 
 # ── Query 3: Members with more than 2 checkouts (HAVING) ─────────────────────
@@ -107,17 +113,27 @@ print()
 # WHERE cannot reference COUNT() — HAVING can.
 print("3. Members with more than 2 checkouts:")
 # TODO: write the query using GROUP BY + HAVING COUNT(...) > 2
-# query3 = "SELECT ..."
-# for row in conn.execute(query3):
-#     print(f"   {row['name']}: {row['checkout_count']} checkouts")
+query3 = """
+    SELECT m.name, COUNT(c.id) AS checkout_count
+    FROM members m
+    JOIN checkouts c ON m.id = c.member_id
+    GROUP BY m.id
+    HAVING COUNT(c.id) > 2
+"""
+for row in conn.execute(query3):
+    print(f"   {row['name']}: {row['checkout_count']} checkouts")
 print()
 
 # ── Query 4: Average pages per genre ─────────────────────────────────────────
 print("4. Average book length (pages) per genre:")
 # TODO: write a query grouping books by genre and using AVG(pages)
-# query4 = "SELECT ..."
-# for row in conn.execute(query4):
-#     print(f"   {row['genre']}: {row['avg_pages']:.0f} avg pages")
+query4 = """
+    SELECT b.genre, AVG(b.pages) AS avg_pages
+    FROM books b
+    GROUP BY b.genre
+"""
+for row in conn.execute(query4):
+    print(f"   {row['genre']}: {row['avg_pages']:.0f} avg pages")
 print()
 
 # ── Query 5: Subquery — members who have checked out more than the average ────
@@ -129,9 +145,18 @@ print("5. Members with above-average checkout counts:")
 #   SELECT name, COUNT(...) AS cnt FROM ...
 #   GROUP BY member_id
 #   HAVING cnt > (SELECT AVG(cnt) FROM (SELECT COUNT(...) AS cnt FROM checkouts GROUP BY member_id))
-# query5 = "SELECT ..."
-# for row in conn.execute(query5):
-#     print(f"   {row['name']}: {row['checkout_count']} checkouts")
+query5 = """
+    SELECT name, COUNT(checkouts.id) AS cnt 
+    FROM members m
+    JOIN checkouts ON m.id = checkouts.member_id
+    GROUP BY m.id
+    HAVING cnt > (SELECT AVG(cnt) 
+                  FROM (SELECT COUNT(checkouts.id) AS cnt 
+                        FROM checkouts 
+                        GROUP BY member_id))
+"""
+for row in conn.execute(query5):
+    print(f"   {row['name']}: {row['cnt']} checkouts")
 print()
 
 conn.close()

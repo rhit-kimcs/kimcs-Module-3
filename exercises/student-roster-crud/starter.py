@@ -59,7 +59,9 @@ def add_student(conn: sqlite3.Connection, name: str, grade: int, gpa: float) -> 
     # Hint: cursor = conn.execute("INSERT INTO students ...")
     #       conn.commit()
     #       return cursor.lastrowid
-    pass
+    cursor = conn.execute("INSERT INTO students (name, grade, gpa) VALUES (?, ?, ?)", (name, grade, gpa))
+    conn.commit()
+    return cursor.lastrowid
 
 
 def get_all_students(conn: sqlite3.Connection) -> list:
@@ -68,7 +70,7 @@ def get_all_students(conn: sqlite3.Connection) -> list:
     Order by id ascending.
     """
     # TODO: execute a SELECT * query and return all results
-    pass
+    return conn.execute("SELECT * FROM students ORDER BY id").fetchall()
 
 
 def get_student_by_id(conn: sqlite3.Connection, student_id: int):
@@ -76,7 +78,7 @@ def get_student_by_id(conn: sqlite3.Connection, student_id: int):
     Return a single student row by id, or None if not found.
     """
     # TODO: execute SELECT with WHERE id = ? and return one row (or None)
-    pass
+    return conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
 
 
 def update_student_gpa(conn: sqlite3.Connection, student_id: int, new_gpa: float) -> bool:
@@ -88,7 +90,9 @@ def update_student_gpa(conn: sqlite3.Connection, student_id: int, new_gpa: float
     """
     # TODO: execute an UPDATE statement
     # Hint: check cursor.rowcount to know if any row was actually changed
-    pass
+    cursor = conn.execute("UPDATE students SET gpa = ? WHERE id = ?", (new_gpa, student_id))
+    conn.commit()
+    return cursor.rowcount > 0
 
 
 def delete_student(conn: sqlite3.Connection, student_id: int) -> bool:
@@ -99,7 +103,9 @@ def delete_student(conn: sqlite3.Connection, student_id: int) -> bool:
         True if a row was deleted, False if no student with that id exists.
     """
     # TODO: execute a DELETE statement and check rowcount
-    pass
+    cursor = conn.execute("DELETE FROM students WHERE id = ?", (student_id,))
+    conn.commit()
+    return cursor.rowcount > 0
 
 
 # ── Test block ────────────────────────────────────────────────────────────────

@@ -51,6 +51,9 @@ print("1. Out of stock products:")
 # query1 = "SELECT ..."
 # for row in conn.execute(query1):
 #     print(f"   {row['name']} ({row['category']})")
+query1 = "SELECT name, category FROM products WHERE stock = 0"
+for row in conn.execute(query1):
+    print(f"   {row['name']} ({row['category']})")
 print()
 
 # 2. Electronics under $100, ordered by price ascending
@@ -59,6 +62,9 @@ print("2. Electronics under $100 (cheapest first):")
 # query2 = "SELECT ..."
 # for row in conn.execute(query2):
 #     print(f"   ${row['price']:.2f}  {row['name']}")
+query2 = "SELECT name, price FROM products WHERE category = 'Electronics' AND price < 100 ORDER BY price ASC"
+for row in conn.execute(query2):
+    print(f"   ${row['price']:.2f}  {row['name']}")
 print()
 
 # 3. The 3 most expensive products overall
@@ -67,6 +73,9 @@ print("3. Top 3 most expensive products:")
 # query3 = "SELECT ..."
 # for row in conn.execute(query3):
 #     print(f"   {row['name']} — ${row['price']:.2f}")
+query3 = "SELECT name, price FROM products ORDER BY price DESC LIMIT 3"
+for row in conn.execute(query3):
+    print(f"   {row['name']} — ${row['price']:.2f}")
 print()
 
 # 4. Products currently on sale (on_sale = 1) with stock > 0
@@ -75,6 +84,9 @@ print("4. On-sale products that are in stock:")
 # query4 = "SELECT ..."
 # for row in conn.execute(query4):
 #     print(f"   {row['name']} — ${row['price']:.2f}  (stock: {row['stock']})")
+query4 = "SELECT name, price, stock FROM products WHERE on_sale = 1 AND stock > 0"
+for row in conn.execute(query4):
+    print(f"   {row['name']} — ${row['price']:.2f}  (stock: {row['stock']})")
 print()
 
 # 5. Products whose name contains the word "book" (case-insensitive)
@@ -83,6 +95,9 @@ print("5. Products matching 'book':")
 # query5 = "SELECT ..."
 # for row in conn.execute(query5):
 #     print(f"   {row['name']}")
+query5 = "SELECT name FROM products WHERE name LIKE '%book%'"
+for row in conn.execute(query5):
+    print(f"   {row['name']}")
 print()
 
 conn.close()

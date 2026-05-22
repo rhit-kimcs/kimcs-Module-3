@@ -68,14 +68,14 @@ conn.commit()
 # Employees without a department (Frank) will NOT appear.
 print("1. All employees with their department and city:")
 # TODO: write an INNER JOIN between employees and departments
-# query1 = """
-#     SELECT ...
-#     FROM employees
-#     INNER JOIN departments ON ...
-#     ORDER BY departments.name, employees.name
-# """
-# for row in conn.execute(query1):
-#     print(f"   {row['name']} — {row['dept_name']} ({row['city']})")
+query1 = """
+    SELECT e.name , d.name AS dept_name, d.city
+    FROM employees e
+    INNER JOIN departments as d ON e.department_id = d.id
+    ORDER BY d.name, e.name
+"""
+for row in conn.execute(query1):
+    print(f"   {row['name']} — {row['dept_name']} ({row['city']})")
 print()
 
 # ── Query 2: LEFT JOIN — all employees, even those without a department ────────
@@ -83,44 +83,57 @@ print()
 # NULL for department columns when no match exists.
 print("2. All employees (including those not in a department):")
 # TODO: write a LEFT JOIN between employees and departments
-# query2 = """
-#     SELECT ...
-#     FROM employees
-#     LEFT JOIN departments ON ...
-#     ORDER BY employees.name
-# """
-# for row in conn.execute(query2):
-#     dept = row['dept_name'] or "No department"
-#     print(f"   {row['name']} — {dept}")
+query2 = """
+    SELECT e.name, d.name AS dept_name
+    FROM employees e
+    LEFT JOIN departments as d ON e.department_id = d.id
+    ORDER BY e.name
+"""
+for row in conn.execute(query2):
+    dept = row['dept_name'] or "No department"
+    print(f"   {row['name']} — {dept}")
 print()
 
 # ── Query 3: INNER JOIN — employees with their projects ───────────────────────
 print("3. Employees and their assigned projects:")
 # TODO: write an INNER JOIN between employees and projects
 # Only employees who have at least one project should appear.
-# query3 = "SELECT ..."
-# for row in conn.execute(query3):
-#     print(f"   {row['employee_name']} → {row['project_title']}")
+query3 = """
+    SELECT e.name AS employee_name, p.title AS project_title
+    FROM employees e
+    INNER JOIN projects p on e.id = p.employee_id
+"""
+for row in conn.execute(query3):
+    print(f"   {row['employee_name']} → {row['project_title']}")
 print()
 
 # ── Query 4: LEFT JOIN — all employees, showing project or "No project" ────────
 print("4. All employees and their project (or 'No project assigned'):")
 # TODO: write a LEFT JOIN between employees and projects
-# query4 = "SELECT ..."
-# for row in conn.execute(query4):
-#     project = row['project_title'] or "No project assigned"
-#     print(f"   {row['employee_name']} → {project}")
+query4 = """
+    SELECT e.name AS employee_name, p.title AS project_title
+    FROM employees e
+    LEFT JOIN projects p on e.id = p.employee_id
+"""
+for row in conn.execute(query4):
+    project = row['project_title'] or "No project assigned"
+    print(f"   {row['employee_name']} → {project}")
 print()
 
 # ── Query 5: Three-table JOIN — employees, departments, and projects ───────────
 print("5. Full directory: employee, department, project:")
 # TODO: JOIN all three tables (employees + departments + projects)
 # Use LEFT JOINs so employees with no department or no project still appear.
-# query5 = "SELECT ..."
-# for row in conn.execute(query5):
-#     dept    = row['dept_name']    or "—"
-#     project = row['project_title'] or "—"
-#     print(f"   {row['employee_name']:<16} | {dept:<15} | {project}")
+query5 = """
+    SELECT e.name AS employee_name, d.name AS dept_name, p.title AS project_title
+    FROM employees e
+    LEFT JOIN departments d ON e.department_id = d.id
+    LEFT JOIN projects p ON p.employee_id = e.id
+"""
+for row in conn.execute(query5):
+    dept    = row['dept_name']    or "—"
+    project = row['project_title'] or "—"
+    print(f"   {row['employee_name']:<16} | {dept:<15} | {project}")
 print()
 
 conn.close()

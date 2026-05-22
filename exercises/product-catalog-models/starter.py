@@ -31,7 +31,11 @@ class Category(Base):
     __tablename__ = "categories"
     # TODO: define columns using Mapped and mapped_column
     # TODO: add a relationship to Product (use back_populates="category")
-    pass
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f"Category(id={self.id}, name={self.name!r})"
 
 
 # ── TODO: Define the Product model ────────────────────────────────────────────
@@ -48,7 +52,15 @@ class Product(Base):
     __tablename__ = "products"
     # TODO: define columns
     # TODO: add a relationship to Category (use back_populates="products")
-    pass
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    # description: Mapped[Optional[str]] = mapped_column(String(500))
+    price: Mapped[float] = mapped_column(Float, nullable=False)
+    in_stock: Mapped[bool] = mapped_column(Boolean, default=True)
+    category_id: Mapped[str | None] = mapped_column(String(100))
+
+    def __repr__(self):
+        return f"Product(id={self.id}, name={self.name!r}, price={self.price})"
 
 
 # ── Test block ────────────────────────────────────────────────────────────────
@@ -78,18 +90,20 @@ if __name__ == "__main__":
     print("Products in stock:")
     with Session(engine) as session:
         # TODO: write a select() query that returns all Products where in_stock == True
-        # stmt = select(Product).where(...)
-        # products = session.execute(stmt).scalars().all()
-        # for p in products:
-        #     print(f"  {p.name} — ${p.price:.2f}")
-        pass
+        stmt = select(Product).where(Product.in_stock == True)
+        products = session.execute(stmt).scalars().all()
+        for p in products:
+            print(f"  {p.name} — ${p.price:.2f}")
     print()
 
     # ── Query 2: Products under $50, ordered by price ─────────────────────────
     print("Products under $50 (cheapest first):")
     with Session(engine) as session:
         # TODO: write a select() query with a price filter and order_by
-        pass
+        stmt = select(Product).where(Product.price < 50).order_by(Product.price)
+        products = session.execute(stmt).scalars().all()
+        for p in products:
+            print(f"  {p.name} — ${p.price:.2f}")
     print()
 
     # ── Query 3: All products with their category name ────────────────────────
@@ -97,6 +111,9 @@ if __name__ == "__main__":
     with Session(engine) as session:
         # TODO: write a select() that also loads the category relationship
         # Hint: you can access p.category.name after joining or via lazy load
-        # stmt = select(Product).join(Product.category)
-        pass
+        stmt = select(Product).join(Category, Product.category_id == Category.id)
+        products = session.execute(stmt).scalars().all()
+        for p in products:
+            category_name = session.get(Category, p.category_id).name if p.category_id else "None"
+            print(f"  {p.name} — ${p.price:.2f} (Category: {category_name})")
     print()

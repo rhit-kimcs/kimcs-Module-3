@@ -32,7 +32,24 @@ def create_tables(conn: sqlite3.Connection) -> None:
     """
     # TODO: write and execute two CREATE TABLE statements
     # Hint: use conn.executescript() for multiple statements, or two conn.execute() calls
-    pass
+    conn.execute("""
+                 CREATE TABLE artists (
+                     id INTEGER PRIMARY KEY,
+                     name TEXT NOT NULL, 
+                    genre TEXT
+                 );
+                 """)
+    
+    conn.execute("""
+                 CREATE TABLE albums (
+                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     title TEXT NOT NULL,
+                     year INTEGER,
+                     artist_id INTEGER,
+                     FOREIGN KEY (artist_id) REFERENCES artists (id)
+                 );
+                 """)
+
 
 
 def insert_data(conn: sqlite3.Connection) -> None:
@@ -43,7 +60,22 @@ def insert_data(conn: sqlite3.Connection) -> None:
     # TODO: insert rows into 'artists', then into 'albums'
     # Hint: use parameterized queries — conn.execute("INSERT INTO ... VALUES (?,?,?)", (val1, val2, val3))
     # Remember to conn.commit() when done
-    pass
+    artists = [
+        ("The Beatles", "Rock"),
+        ("David Bowie", "Rock"),
+        ("Radiohead", "Alternative"),
+    ]
+    conn.executemany("INSERT INTO artists (name, genre) VALUES (?, ?)", artists)
+    albums = [
+        ("Abbey Road", 1969, 1),  # artist_id 1 = The Beatles
+        ("Revolver", 1966, 1),
+        ("Ziggy Stardust", 1972, 2),  # artist_id 2 = David Bowie
+        ("Hunky Dory", 1971, 2),
+        ("OK Computer", 1997, 3),  # artist_id 3 = Radiohead
+        ("Kid A", 2000, 3),
+    ]
+    conn.executemany("INSERT INTO albums (title, year, artist_id) VALUES (?,?,?)", albums)
+    conn.commit()
 
 
 def query_albums(conn: sqlite3.Connection) -> list:
@@ -54,7 +86,13 @@ def query_albums(conn: sqlite3.Connection) -> list:
     """
     # TODO: write a SELECT with a JOIN between albums and artists
     # Hint: SELECT albums.title, albums.year, artists.name FROM albums JOIN artists ...
-    pass
+    cursor = conn.execute("""
+                    SELECT albums.title, albums.year, artists.name
+                    FROM albums
+                    JOIN artists ON albums.artist_id = artists.id
+                    ORDER BY artists.name, albums.year
+                 """)
+    return cursor.fetchall()
 
 
 # ── Test block ────────────────────────────────────────────────────────────────

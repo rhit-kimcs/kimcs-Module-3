@@ -25,12 +25,12 @@ class Base(DeclarativeBase):
 # This table links students to courses (many-to-many).
 # It has no extra columns — just two foreign keys, both part of the PK.
 #
-# enrollments = Table(
-#     "enrollments",
-#     Base.metadata,
-#     Column("student_id", Integer, ForeignKey("students.id"), primary_key=True),
-#     Column("course_id",  Integer, ForeignKey("courses.id"),  primary_key=True),
-# )
+enrollments = Table(
+    "enrollments",
+    Base.metadata,
+    Column("student_id", Integer, ForeignKey("students.id"), primary_key=True),
+    Column("course_id",  Integer, ForeignKey("courses.id"),  primary_key=True),
+)
 
 
 # ── TODO: Implement the Department model ──────────────────────────────────────

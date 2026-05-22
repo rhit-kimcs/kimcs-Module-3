@@ -48,13 +48,25 @@ def add_contact(name: str, email: str, phone: str = None) -> Contact:
     # TODO: open a Session
     # TODO: check if a contact with the same email already exists; raise ValueError if so
     # TODO: create and add the Contact, commit, refresh, return it
-    pass
+    with Session(engine) as session:
+        contact = Contact(
+            name=name,
+            email=email,
+            phone=phone
+        )
+        session.add(contact)
+        session.commit()
+        session.refresh(contact)
+        return contact
 
 
 def list_contacts() -> list:
     """Return all contacts ordered by name."""
     # TODO: use select(Contact).order_by(Contact.name)
-    pass
+    with Session(engine) as session:
+        return session.execute(
+            select(Contact).order_by(Contact.name)
+        ).scalars().all()
 
 
 def find_contact(email: str) -> Contact:
@@ -62,7 +74,10 @@ def find_contact(email: str) -> Contact:
     Return the Contact with the given email, or None if not found.
     """
     # TODO: use select(Contact).where(Contact.email == email)
-    pass
+    with Session(engine) as session:
+        return session.execute(
+            select(Contact).where(Contact.email == email)
+        ).scalar_one_or_none()
 
 
 def update_phone(email: str, new_phone: str) -> bool:
@@ -71,7 +86,15 @@ def update_phone(email: str, new_phone: str) -> bool:
     Returns True if found and updated, False if not found.
     """
     # TODO: find the contact, update phone, commit
-    pass
+    with Session(engine) as session:
+        contact = session.execute(
+            select(Contact).where(Contact.email == email)
+        ).scalar_one_or_none()
+        if not contact:
+            return False
+        contact.phone = new_phone
+        session.commit()
+        return True
 
 
 def toggle_favorite(email: str) -> bool:
@@ -80,7 +103,15 @@ def toggle_favorite(email: str) -> bool:
     Returns the new value of favorite, or raises ValueError if not found.
     """
     # TODO: find the contact, flip contact.favorite, commit, return new value
-    pass
+    with Session(engine) as session:
+        contact = session.execute(
+            select(Contact).where(Contact.email == email)
+        ).scalar_one_or_none()
+        if not contact:
+            raise ValueError(f"No contact found with email: {email}")
+        contact.favorite = not contact.favorite
+        session.commit()
+        return contact.favorite
 
 
 def delete_contact(email: str) -> bool:
@@ -89,7 +120,15 @@ def delete_contact(email: str) -> bool:
     Returns True if deleted, False if not found.
     """
     # TODO: find the contact, session.delete(), commit
-    pass
+    with Session(engine) as session:
+        contact = session.execute(
+            select(Contact).where(Contact.email == email)
+        ).scalar_one_or_none()
+        if not contact:
+            return False
+        session.delete(contact)
+        session.commit()
+        return True
 
 
 # ── Test block ────────────────────────────────────────────────────────────────
