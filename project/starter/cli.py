@@ -15,49 +15,96 @@ from library_system import (
 
 def menu_add_book():
     """Prompt for book details and add to the database."""
-    # TODO: Use input() to collect title, isbn, author name, year, genres
-    # Tip: You may need to add the author first if they don't exist
-    # TODO: Call add_book() and print a confirmation message
-    pass
+    title = input("Enter the title of the book: ")
+    isbn = input("Enter the ISBN of the book: ")
+    author_name = input("Enter the name of the author: ")
+    year_str = input("Enter the year of publication: ")
+    genres_str = input("Enter the genres of the book (comma separated): ")
+
+    author = add_author(author_name)
+    year = int(year_str) if year_str.strip() else None
+    genre_names = [g.strip() for g in genres_str.split(",") if g.strip()] or None
+
+    book = add_book(title, isbn, author.id, year, genre_names)
+    print(f"Book '{book.title}' added successfully (id={book.id}).")
 
 
 def menu_add_borrower():
     """Prompt for borrower details and register in the database."""
-    # TODO: Use input() to collect name, email, phone
-    # TODO: Call add_borrower() and print a confirmation message
-    pass
+    name = input("Enter the name of the borrower: ")
+    email = input("Enter the email of the borrower: ")
+    phone = input("Enter the phone number of the borrower (optional): ").strip() or None
+    borrower = add_borrower(name, email, phone)
+    print(f"Borrower '{borrower.name}' added successfully (id={borrower.id}).")
 
 
 def menu_checkout():
     """Prompt for book ID and borrower ID, then check out the book."""
-    # TODO: Show available books (call get_available_books())
-    # TODO: Prompt for book_id and borrower_id
-    # TODO: Call checkout_book() and handle ValueError (book not available)
-    pass
+    available_books = get_available_books()
+    if not available_books:
+        print("No books are currently available.")
+        return
+
+    print("Available books:")
+    for book in available_books:
+        print(f"  [{book.id}] {book.title} by {book.author.name}")
+
+    book_id = input("Enter the ID of the book to checkout: ")
+    borrower_id = input("Enter the ID of the borrower: ")
+    try:
+        checkout = checkout_book(int(book_id), int(borrower_id))
+        print(f"Checkout #{checkout.id} created successfully (due {checkout.due_date}).")
+    except ValueError as exc:
+        print(f"Error: {exc}")
 
 
 def menu_return():
     """Prompt for checkout ID and return the book."""
-    # TODO: Prompt for checkout_id, call return_book(), print confirmation
-    pass
+    checkout_id = input("Enter the ID of the checkout to return: ")
+    try:
+        checkout = return_book(int(checkout_id))
+        print(f"Checkout #{checkout.id} returned successfully on {checkout.return_date}.")
+    except ValueError as exc:
+        print(f"Error: {exc}")
 
 
 def menu_search_by_author():
     """Prompt for author name and display matching books."""
-    # TODO: Prompt for author_name, call find_books_by_author(), print results
-    pass
+    author_name = input("Enter the name of the author: ")
+    books = find_books_by_author(author_name)
+    print(f"Books by '{author_name}':")
+    if not books:
+        print("  No books found.")
+        return
+    for book in books:
+        status = "available" if book.available else "checked out"
+        print(f"  [{book.id}] {book.title} by {book.author.name} ({book.published_year}) [{status}]")
 
 
 def menu_overdue():
     """Display all overdue checkouts."""
-    # TODO: Call get_overdue_books() and print results
-    pass
+    overdue_checkouts = get_overdue_books()
+    print("Overdue checkouts:")
+    if not overdue_checkouts:
+        print("  None.")
+        return
+    for checkout in overdue_checkouts:
+        print(
+            f"  Checkout #{checkout.id}: '{checkout.book.title}' by "
+            f"{checkout.book.author.name} -> {checkout.borrower.name} "
+            f"(due {checkout.due_date})"
+        )
 
 
 def menu_popular_genres():
     """Display the most popular genres by checkout count."""
-    # TODO: Call get_popular_genres() and print results
-    pass
+    popular_genres = get_popular_genres()
+    print("Popular genres:")
+    if not popular_genres:
+        print("  No checkout data yet.")
+        return
+    for genre_name, count in popular_genres:
+        print(f"  {genre_name}: {count} checkout(s)")
 
 
 def main():

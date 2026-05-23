@@ -70,18 +70,21 @@ df["revenue"] = df["units"] * df["unit_price"]
 print("=== Q1: Total revenue per category ===")
 
 # SQL approach:
-# TODO: write a SQL query that groups by category and sums (units * unit_price)
-#       order by total revenue descending
-# sql_q1 = "SELECT ..."
-# print("SQL result:")
-# for row in conn.execute(sql_q1):
-#     print(f"  {row['category']}: ${row['total_revenue']:.2f}")
+sql_q1 = """
+    SELECT category, SUM(units * unit_price) AS total_revenue
+    FROM sales
+    GROUP BY category
+    ORDER BY total_revenue DESC
+"""
+print("SQL result:")
+for row in conn.execute(sql_q1):
+    print(f"  {row['category']}: ${row['total_revenue']:.2f}")
 
 # Pandas approach:
-# TODO: use df.groupby() and .sum() or .agg() to get the same result
-# print("Pandas result:")
-# pandas_q1 = df.groupby(...)...
-# print(pandas_q1)
+print("Pandas result:")
+pandas_q1 = df.groupby("category")["revenue"].sum().sort_values(ascending=False)
+for category, total in pandas_q1.items():
+    print(f"  {category}: ${total:.2f}")
 print()
 
 # ── Question 2: Best-selling product by units sold ────────────────────────────
@@ -89,14 +92,20 @@ print()
 print("=== Q2: Best-selling product by total units ===")
 
 # SQL approach:
-# TODO: GROUP BY product, SUM(units), ORDER BY DESC, LIMIT 1
-# sql_q2 = "SELECT ..."
-# row = conn.execute(sql_q2).fetchone()
-# print(f"SQL: {row['product']} — {row['total_units']} units")
+sql_q2 = """
+    SELECT product, SUM(units) AS total_units
+    FROM sales
+    GROUP BY product
+    ORDER BY total_units DESC
+    LIMIT 1
+"""
+row = conn.execute(sql_q2).fetchone()
+print(f"SQL: {row['product']} — {row['total_units']} units")
 
 # Pandas approach:
-# TODO: groupby product, sum units, idxmax or sort_values
-# print(f"Pandas: ...")
+units_by_product = df.groupby("product")["units"].sum()
+best_product = units_by_product.idxmax()
+print(f"Pandas: {best_product} — {units_by_product[best_product]} units")
 print()
 
 # ── Question 3: Revenue by region for Electronics only ────────────────────────
@@ -104,17 +113,23 @@ print()
 print("=== Q3: Electronics revenue by region ===")
 
 # SQL approach:
-# TODO: WHERE category = 'Electronics', GROUP BY region, SUM(units * unit_price)
-# sql_q3 = "SELECT ..."
-# print("SQL result:")
-# for row in conn.execute(sql_q3):
-#     print(f"  {row['region']}: ${row['revenue']:.2f}")
+sql_q3 = """
+    SELECT region, SUM(units * unit_price) AS revenue
+    FROM sales
+    WHERE category = 'Electronics'
+    GROUP BY region
+    ORDER BY revenue DESC
+"""
+print("SQL result:")
+for row in conn.execute(sql_q3):
+    print(f"  {row['region']}: ${row['revenue']:.2f}")
 
 # Pandas approach:
-# TODO: filter df where category == 'Electronics', then groupby region
-# print("Pandas result:")
-# pandas_q3 = df[...].groupby(...)...
-# print(pandas_q3)
+print("Pandas result:")
+electronics = df[df["category"] == "Electronics"]
+pandas_q3 = electronics.groupby("region")["revenue"].sum().sort_values(ascending=False)
+for region, revenue in pandas_q3.items():
+    print(f"  {region}: ${revenue:.2f}")
 print()
 
 # ── Question 4: Month-over-month sales trend ──────────────────────────────────
@@ -122,27 +137,31 @@ print()
 print("=== Q4: Monthly revenue trend ===")
 
 # SQL approach:
-# TODO: use strftime('%Y-%m', date) to extract the month, then GROUP BY and SUM
-# sql_q4 = "SELECT strftime('%Y-%m', date) AS month, ..."
-# print("SQL result:")
-# for row in conn.execute(sql_q4):
-#     print(f"  {row['month']}: ${row['monthly_revenue']:.2f}")
+sql_q4 = """
+    SELECT strftime('%Y-%m', date) AS month,
+           SUM(units * unit_price) AS monthly_revenue
+    FROM sales
+    GROUP BY month
+    ORDER BY month
+"""
+print("SQL result:")
+for row in conn.execute(sql_q4):
+    print(f"  {row['month']}: ${row['monthly_revenue']:.2f}")
 
 # Pandas approach:
-# TODO: convert 'date' column to datetime, extract month, groupby
-# Hint: pd.to_datetime(df['date']).dt.to_period('M')
-# print("Pandas result:")
-# pandas_q4 = ...
-# print(pandas_q4)
+print("Pandas result:")
+df_monthly = df.copy()
+df_monthly["month"] = pd.to_datetime(df_monthly["date"]).dt.to_period("M")
+pandas_q4 = df_monthly.groupby("month")["revenue"].sum().sort_index()
+for month, revenue in pandas_q4.items():
+    print(f"  {month}: ${revenue:.2f}")
 print()
 
 # ── Bonus: pd.read_sql() bridge ───────────────────────────────────────────────
 # pd.read_sql() lets you run SQL and get the result directly as a DataFrame.
 print("=== Bonus: pd.read_sql() ===")
-# TODO: use pd.read_sql() to run your Q1 SQL query and get a DataFrame back
-# Hint: pd.read_sql("SELECT ...", conn)
-# bonus_df = pd.read_sql(sql_q1, conn)
-# print(bonus_df)
+bonus_df = pd.read_sql(sql_q1, conn)
+print(bonus_df)
 print()
 
 conn.close()
